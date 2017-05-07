@@ -6,20 +6,22 @@
 #define BLOCKS 1024
 #define THREADS 256
 
+void getmaxcu(unsigned int *, unsigned int);
+
 /*
    input: pointer to an array of long int
           number of elements in the array
    output: the maximum number of the array
 */
-__global__  
-getmax(long * num_d)
+__global__  void
+getmaxcu(long * num_d)
 {
 
   __shared__ long maxResult[THREADS * 2];
   int tx = threadIdx.x;
 
   for (int stride = THREADS*2; stride > 0; stride = stride /2 ) {
-    __syncThreads();
+    __syncthreads();
 
     if (num_d[tx*2] > num_d[(tx*2)+1]) {
 
@@ -87,7 +89,7 @@ int main(int argc, char *argv[])
 
 
      //(3) kernel launch code
-    getmax<<<BLOCKS,THREADS>>>(num_d);
+    getmaxcu<<<BLOCKS,THREADS>>>(num_d);
 
 
      //(4) copy get max array from the device memory 
