@@ -6,7 +6,7 @@
 #define BLOCKS 1024
 #define THREADS 256
 
-
+void getmaxcu(long *, long *);
 
 /*
    input: pointer to an array of long int
