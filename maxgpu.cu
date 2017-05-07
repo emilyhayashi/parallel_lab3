@@ -6,7 +6,7 @@
 #define BLOCKS 1024
 #define THREADS 256
 
-void getmaxcu(unsigned int *, unsigned int);
+
 
 /*
    input: pointer to an array of long int
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
 
      //(3) kernel launch code
-    getmaxcu<<<BLOCKS,THREADS>>>(num_d);
+    getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
 
 
      //(4) copy get max array from the device memory 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 }
 
 __global__  void
-getmaxcu(long * num_d)
+getmaxcu(long * num_d, long * result_d)
 {
 
   __shared__ long maxResult[THREADS * 2];
@@ -100,7 +100,7 @@ getmaxcu(long * num_d)
 
   }
 
-  result_d [blockIdx.x] = maxResult[0];
+  result_d[blockIdx.x] = maxResult[0];
 
 }
 
