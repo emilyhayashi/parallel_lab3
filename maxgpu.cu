@@ -3,13 +3,49 @@
 #include <time.h>
 #include <cuda.h>
 
-unsigned int getmax(unsigned int *, unsigned int);
+#define BLOCKS 1024
+#define THREADS 256
+
+/*
+   input: pointer to an array of long int
+          number of elements in the array
+   output: the maximum number of the array
+*/
+__global__  
+getmax(long * num_d)
+{
+
+  __shared__ long maxResult[THREADS * 2];
+  int tx = threadIdx.x;
+
+  for (int stride = THREADS*2; stride > 0; stride = stride /2 ) {
+    __syncThreads();
+
+    if (num_d[tx*2] > num_d[(tx*2)+1]) {
+
+      num_d[tx*2] = maxResult[tx];
+
+    }
+    else {
+
+      num_d[(tx*2)+1] = maxResult[tx];
+
+    }
+
+
+  }
+
+  result_d [blockIdx.x] = maxResult[0];
+
+}
+
 
 int main(int argc, char *argv[])
 {
-    unsigned int size = 0;  // The size of the array
-    unsigned int i;  // loop index
-    unsigned int * numbers; //pointer to the array
+   long size = 0;  // The size of the array
+   long i;  // loop index
+   long * numbers; // host copy of numbers array
+   long * result; // host copy of result
     
     if(argc !=2)
     {
@@ -20,47 +56,50 @@ int main(int argc, char *argv[])
    
     size = atol(argv[1]);
 
-    numbers = (unsigned int *)malloc(size * sizeof(unsigned int));
+    numbers = (long *)malloc(size * sizeof(long));
     if( !numbers )
     {
-       printf("Unable to allocate mem for an array of size %u\n", size);
+       printf("Unable to allocate mem for an array of size %ld\n", size);
        exit(1);
     }    
+
+
+        result = (long *)malloc(size * sizeof(long));
+
 
     srand(time(NULL)); // setting a seed for the random number generator
     // Fill-up the array with random numbers from 0 to size-1 
     for( i = 0; i < size; i++)
-       numbers[i] = rand()  % size;    
+       numbers[i] = rand() % size;    
    
-    printf(" The maximum number in the array is: %u\n", 
-           getmax(numbers, size));
+
+    // (1) Transfer numbers array
+    long * num_d; //device copy of numbers array
+
+    cudaMalloc((void **) &num_d, size);
+    cudaMemcpy(num_d, numbers, size, cudaMemcpyHostToDevice);
+
+    long * result_d; //device copy of result
+
+    // (2) Allocate device memory for result array
+    cudaMalloc((void **) &result_d, size);
+
+
+
+     //(3) kernel launch code
+    getmax<<<BLOCKS,THREADS>>>(num_d);
+
+
+     //(4) copy get max array from the device memory 
+    cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
+    //free device memory
+    cudaFree(result_d);
+    cudaFree(num_d);
 
     free(numbers);
+    free(result);
     exit(0);
 }
 
 
-/*
-   input: pointer to an array of long int
-          number of elements in the array
-   output: the maximum number of the array
-*/
 
-__global__
-getmaxcu(long * num_arr)
-{
-    __shared__ long maxResult[THREADS * 2];
-    int tx = threadIdx.x;
-
-    for (int stride= THREADS * 2; stride > 0; stride = stride/2){
-        __syncthreads();
-
-        if (num_arr[tx*2] > num_d[(tx*2)+ 1]){
-            num_arr[(tx*2)+1] = maxResult[tx];
-        }
-        else{
-            num_arr[(tx*2) +1] = maxResult[tx];
-        }
-    }
-    result[blockIdx.x] = maxResult[0];
-}
