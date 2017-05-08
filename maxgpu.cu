@@ -8,6 +8,14 @@
 __global__  
 void getmaxcu(long * num_d, long * result_d)
 {
+
+cudaError_t cudaGetDeviceProperties ( struct cudaDeviceProp *   prop,
+int   device   
+);
+
+printf(prop.maxThreadsPerBlock + "\n");
+
+
   __shared__ long maxResult[THREADS * 2];
   int tx = threadIdx.x;
 
@@ -55,8 +63,6 @@ int main(int argc, char *argv[])
     // Fill-up the array with random numbers from 0 to size-1 
     for( i = 0; i < size; i++)
        numbers[i] = rand() % size;    
-   
-
   
     long * num_d; 
 
