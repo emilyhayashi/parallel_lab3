@@ -29,10 +29,20 @@ int main(int argc, char *argv[])
     srand(time(NULL)); // setting a seed for the random number generator
     // Fill-up the array with random numbers from 0 to size-1 
     for( i = 0; i < size; i++)
-       numbers[i] = rand()  % size;    
+       numbers[i] = rand()  % size; 
+
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();   
    
     printf(" The maximum number in the array is: %u\n", 
            getmax(numbers, size));
+    end = clock();
+    cpu_time_used = ((double) (end-start))/CLOCKS_PER_SEC;
+
+    printf(" time taken %d\n", 
+           cpu_time_used);
+
 
     free(numbers);
     exit(0);

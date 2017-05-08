@@ -79,9 +79,19 @@ int main(int argc, char *argv[])
     cudaMalloc((void **) &result_d, size);
 
 
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();  
 
      //(3) kernel launch code
     getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
+
+    end = clock();
+    cpu_time_used = ((double) (end-start))/CLOCKS_PER_SEC;
+
+    printf(" time taken %d\n", 
+           cpu_time_used);
+
 
 
      //(4) copy get max array from the device memory 
