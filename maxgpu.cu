@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cuda.h>
-
 #define BLOCKS 1024
 #define THREADS 256
 
-//help
 __global__  
 void getmaxcu(long * num_d, long * result_d)
 {
@@ -17,21 +15,13 @@ void getmaxcu(long * num_d, long * result_d)
     __syncthreads();
 
     if (num_d[tx*2] > num_d[(tx*2)+1]) {
-
       num_d[tx*2] = maxResult[tx];
-
     }
     else {
-
       num_d[(tx*2)+1] = maxResult[tx];
-
     }
-
-
   }
-
   result_d[blockIdx.x] = maxResult[0];
-
 }
 
 int main(int argc, char *argv[])
@@ -67,25 +57,22 @@ int main(int argc, char *argv[])
        numbers[i] = rand() % size;    
    
 
-    // (1) Transfer numbers array
-    long * num_d; //device copy of numbers array
+  
+    long * num_d; 
 
     cudaMalloc((void **) &num_d, size);
     cudaMemcpy(num_d, numbers, size, cudaMemcpyHostToDevice);
 
-    long * result_d; //device copy of result
+    long * result_d; 
 
-    // (2) Allocate device memory for result array
     cudaMalloc((void **) &result_d, size);
 
 
     clock_t start, end;
     double cpu_time_used;
     start = clock();  
-
-     //(3) kernel launch code
+   
     getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
-
     end = clock();
     cpu_time_used = ((double) (end-start))/CLOCKS_PER_SEC;
 
@@ -93,12 +80,10 @@ int main(int argc, char *argv[])
            cpu_time_used);
 
 
-
-     //(4) copy get max array from the device memory 
     cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
     printf(" The maximum number in the array is: %u\n", 
            result);
-    //free device memory
+
     cudaFree(result_d);
     cudaFree(num_d);
 
