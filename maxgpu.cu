@@ -8,12 +8,33 @@
 
 void getmaxcu(long *, long *);
 
-/*
-   input: pointer to an array of long int
-          number of elements in the array
-   output: the maximum number of the array
-*/
+__global__  
+void getmaxcu(long * num_d, long * result_d)
+{
 
+  __shared__ long maxResult[THREADS * 2];
+  int tx = threadIdx.x;
+
+  for (int stride = THREADS*2; stride > 0; stride = stride /2 ) {
+    __syncthreads();
+
+    if (num_d[tx*2] > num_d[(tx*2)+1]) {
+
+      num_d[tx*2] = maxResult[tx];
+
+    }
+    else {
+
+      num_d[(tx*2)+1] = maxResult[tx];
+
+    }
+
+
+  }
+
+  result_d[blockIdx.x] = maxResult[0];
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -76,33 +97,7 @@ int main(int argc, char *argv[])
     exit(0);
 }
 
-__global__  void
-getmaxcu(long * num_d, long * result_d)
-{
 
-  __shared__ long maxResult[THREADS * 2];
-  int tx = threadIdx.x;
-
-  for (int stride = THREADS*2; stride > 0; stride = stride /2 ) {
-    __syncthreads();
-
-    if (num_d[tx*2] > num_d[(tx*2)+1]) {
-
-      num_d[tx*2] = maxResult[tx];
-
-    }
-    else {
-
-      num_d[(tx*2)+1] = maxResult[tx];
-
-    }
-
-
-  }
-
-  result_d[blockIdx.x] = maxResult[0];
-
-}
 
 
 
