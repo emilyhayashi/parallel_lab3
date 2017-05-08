@@ -38,10 +38,8 @@ int main(int argc, char *argv[])
            getmax(numbers, size));
     diff = clock() - start;
 
-    int msec = diff * 1000 / CLOCKS_PER_SEC;
-    printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
-
-
+    int nsec = diff * 100 / CLOCKS_PER_SEC;
+    printf("Time taken %d seconds %d milliseconds", nsec/100, nsec%100);
     free(numbers);
     exit(0);
 }

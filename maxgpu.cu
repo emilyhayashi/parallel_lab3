@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
     getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
     diff = clock() - start;
 
-    int msec = diff * 1000 / CLOCKS_PER_SEC;
-    printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
+    int nsec = diff * 100 / CLOCKS_PER_SEC;
+    printf("Time taken %d seconds %d milliseconds", nsec/100, nsec%100);
 
     cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
     printf(" The maximum number in the array is: %u\n", 
