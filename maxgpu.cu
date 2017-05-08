@@ -6,11 +6,10 @@
 #define BLOCKS 1024
 #define THREADS 256
 
-
+//help
 __global__  
 void getmaxcu(long * num_d, long * result_d)
 {
-
   __shared__ long maxResult[THREADS * 2];
   int tx = threadIdx.x;
 
