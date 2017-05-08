@@ -31,17 +31,15 @@ int main(int argc, char *argv[])
     for( i = 0; i < size; i++)
        numbers[i] = rand()  % size; 
 
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();   
+    clock_t start = clock(), diff;
+
    
     printf(" The maximum number in the array is: %u\n", 
            getmax(numbers, size));
-    end = clock();
-    cpu_time_used = ((double) (end-start))/CLOCKS_PER_SEC;
+    diff = clock() - start;
 
-    printf(" time taken %d\n", 
-           cpu_time_used);
+    int msec = diff * 1000 / CLOCKS_PER_SEC;
+    printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
 
 
     free(numbers);

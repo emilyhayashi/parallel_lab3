@@ -2,18 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cuda.h>
+
 #define BLOCKS 1024
 #define THREADS 256
 
 __global__  
 void getmaxcu(long * num_d, long * result_d)
 {
-
-cudaError_t cudaGetDeviceProperties ( struct cudaDeviceProp *   prop,
-int   device   
-);
-
-printf(prop.maxThreadsPerBlock + "\n");
 
 
   __shared__ long maxResult[THREADS * 2];
@@ -74,17 +69,15 @@ int main(int argc, char *argv[])
     cudaMalloc((void **) &result_d, size);
 
 
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();  
    
+    
+ 
+    clock_t start = clock(), diff;
     getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
-    end = clock();
-    cpu_time_used = ((double) (end-start))/CLOCKS_PER_SEC;
+    diff = clock() - start;
 
-    printf(" time taken %d\n", 
-           cpu_time_used);
-
+    int msec = diff * 1000 / CLOCKS_PER_SEC;
+    printf("Time taken %d seconds %d milliseconds", msec/1000, msec%1000);
 
     cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
     printf(" The maximum number in the array is: %u\n", 
