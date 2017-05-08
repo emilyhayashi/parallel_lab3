@@ -6,7 +6,6 @@
 #define BLOCKS 1024
 #define THREADS 256
 
-void getmaxcu(long *, long *);
 
 __global__  
 void getmaxcu(long * num_d, long * result_d)
