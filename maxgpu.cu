@@ -88,6 +88,8 @@ int main(int argc, char *argv[])
 
      //(4) copy get max array from the device memory 
     cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
+    printf(" The maximum number in the array is: %u\n", 
+           result);
     //free device memory
     cudaFree(result_d);
     cudaFree(num_d);
