@@ -2,37 +2,38 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cuda.h>
+#include <ctime>
+#include <iostream>
 
-#define BLOCKS 1024
-#define THREADS 256
+#define THREADS 1024
 
 __global__  
-void getmaxcu(long * num_d, long * result_d)
+void getmaxcu(unsigned int * numbers, unsigned int * result, unsigned int size)
 {
+  __shared__ unsigned int arr[];
 
-
-  __shared__ long maxResult[THREADS * 2];
   int tx = threadIdx.x;
+  arr[tx] = numbers[tx];
 
-  for (int stride = THREADS*2; stride > 0; stride = stride /2 ) {
+  for (int stride = blockDim.x/2; stride > 0; stride = stride /2 ) {
     __syncthreads();
-
-    if (num_d[tx*2] > num_d[(tx*2)+1]) {
-      num_d[tx*2] = maxResult[tx];
-    }
-    else {
-      num_d[(tx*2)+1] = maxResult[tx];
+    if(tx<stride){
+      if (arr[tx] < arr[tx+stride]) {
+        arr[tx] = arr[tx]+stride;
+      }
+      __syncthreads();
     }
   }
-  result_d[blockIdx.x] = maxResult[0];
+  if(!tx){
+    atomicMax(result, arr[0]);
+  }
 }
-
 int main(int argc, char *argv[])
 {
-   long size = 0;  // The size of the array
-   long i;  // loop index
-   long * numbers; // host copy of numbers array
-   long * result; // host copy of result
+   unsigned int size = 0;  // The size of the array
+   unsigned int i;  // loop index
+   unsigned int * numbers; // host copy of numbers array
+   unsigned int * result; // host copy of result
     
     if(argc !=2)
     {
@@ -42,8 +43,9 @@ int main(int argc, char *argv[])
     }
    
     size = atol(argv[1]);
+    unsigned int grid=ceil((float)size/BLOCKS);
 
-    numbers = (long *)malloc(size * sizeof(long));
+    numbers = (unsigned int *)malloc(size * sizeof(unsigned int));
     if( !numbers )
     {
        printf("Unable to allocate mem for an array of size %ld\n", size);
@@ -51,7 +53,7 @@ int main(int argc, char *argv[])
     }    
 
 
-        result = (long *)malloc(size * sizeof(long));
+    result = (unsigned int *)malloc(size * sizeof(unsigned int));
 
 
     srand(time(NULL)); // setting a seed for the random number generator
@@ -59,33 +61,24 @@ int main(int argc, char *argv[])
     for( i = 0; i < size; i++)
        numbers[i] = rand() % size;    
   
-    long * num_d; 
+    unsigned int * device_numbers; 
 
-    cudaMalloc((void **) &num_d, size);
-    cudaMemcpy(num_d, numbers, size, cudaMemcpyHostToDevice);
+    cudaMalloc((void **) &device_numbers, sizeof(unsigned int)*size);
+    cudaMemcpy(device_numbers, numbers, sizeof(unsigned int) * size, cudaMemcpyHostToDevice);
 
-    long * result_d; 
+    long * device_result; 
 
-    cudaMalloc((void **) &result_d, size);
+    cudaMalloc((void **) &device_result, size);
 
-
-   
-    
+  dim3 dimGrid(grid);
+  dim3 dimBlock(THREADS);
  
-    clock_t start = clock(), diff;
-    getmaxcu<<<BLOCKS,THREADS>>>(num_d, result_d);
-    diff = clock() - start;
 
-    int nsec = diff * 10000 / CLOCKS_PER_SEC;
-    printf("Time taken %d seconds %d milliseconds", nsec/1000, nsec%1000);
+    getmaxcu<<<dimGrid,dimBlock,THREADS*sizeof(unsigned int)>>>(device_numbers, device_result, size);
 
-    cudaMemcpy(result, result_d, size, cudaMemcpyDeviceToHost);
-    printf(" The maximum number in the array is: %u\n", 
-           result);
-
-    cudaFree(result_d);
-    cudaFree(num_d);
-
+    cudaMemcpy(result, device_result, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaFree(device_result);
+    cudaFree(device_numbers);
     free(numbers);
     free(result);
     exit(0);
