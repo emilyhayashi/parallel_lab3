@@ -10,7 +10,7 @@
 __global__  
 void getmaxcu(unsigned int * numbers, unsigned int * result, unsigned int size)
 {
-  __shared__ unsigned int arr[];
+  extern __shared__ unsigned int arr[];
 
   int tx = threadIdx.x;
   arr[tx] = numbers[tx];
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     }
    
     size = atol(argv[1]);
-    unsigned int grid=ceil((float)size/BLOCKS);
+    unsigned int grid=ceil((float)size/THREADS);
 
     numbers = (unsigned int *)malloc(size * sizeof(unsigned int));
     if( !numbers )
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     cudaMalloc((void **) &device_numbers, sizeof(unsigned int)*size);
     cudaMemcpy(device_numbers, numbers, sizeof(unsigned int) * size, cudaMemcpyHostToDevice);
 
-    long * device_result; 
+    unsigned int * device_result; 
 
     cudaMalloc((void **) &device_result, size);
 
